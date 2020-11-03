@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport"  content="width=device-width, initial-scale=1.0"/>
+        <title> Live monitor</title>
+        <link href="style.css" rel="stylesheet"/>
+    </head>
+    <body onload="getinitialvalues()">
+        <div class="maincontainer">
+            <div class="authorname  border-style">
+               <h4>By GONGMOGA KIDANDI Henri & GUIGABE Victor</h4>
+            </div>
+            <div class="uptime trans border-style"> 
+                <span> En service depuis: </span>
+                <h4> <span id="uptime"></span> </h4>
+            </div>
+            <div class="blockinfo trans cpu border-style">
+                <h3> Processeur</h3>
+                <ul>
+                    <li> <span class="name">Modèle: </span> <span class="value" id="cpumodel"></span> </li>
+                    <li> <span class="name">Coeurs : </span> <span class="value" id="cpucore"></span> </li>
+                    <li> <span class="name">Processeurs logiques : </span> <span class="value" id="cpulog"></span></li>
+                    <li> <span class="name">Architecture : </span> <span class="value" id="cpuarch"></span> </li>
+                    <li> <span class="name">Vitesse Max: </span> <span class="value" id="cpuspeed"></span> </li>
+                    <li> <span class="name">utilisation : </span> <span class="value" id="cpusage"></span> </li>
+                </ul>
+            </div>
+            <div class="blockinfo trans mem border-style">
+                <h3> Mémoire</h3>
+                <ul>
+                    <li> <span class="name">Totale : </span>  <span class="value" id='totalmem'></span> </li>
+                    <li> <span class="name">En cours d'utilisation: </span> <span class="value" id='usedmem'></span> </li>
+                    <li> <span class="name">Disponible : </span> <span class="value" id='freemem'></span> </li>
+                    <li> <span class="name"> Disponible (%) : </span> <span class="value" id='freePercentagemem'></span> </li>
+                </ul>
+            </div>
+            <div class="blockinfosys trans border-style">
+                <h4> Système et hôte</h4>
+                <ul>
+                    <li> <span class="name">Plateforme: </span> <span class="value" id='osplatform'></span> </li>
+                    <li> <span class="name">Type : </span> <span class="value" id='osptype'></span> </li>
+                    <li> <span class="name">Nom de la machine : </span> <span class="value" id='hostname'></span> </li>
+                    <li> <span class="name">Utilisateur : </span> <span class="value" id='username'></span> </li>
+                </ul>
+            </div>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+            function getinitialvalues(){
+                socket.emit('getfirstvalues');
+            }
+            socket.on('firstval', function(initalvalues){
+                obj = JSON.parse(initalvalues);
+                document.getElementById('uptime').innerText = obj.osuptime;
+
+                document.getElementById('cpumodel').innerText = obj.cpumodel;
+                document.getElementById('cpucore').innerText = obj.cpucore;
+                document.getElementById('cpulog').innerText = obj.cpulog;
+                document.getElementById('cpuarch').innerText = obj.cpuarch;
+                document.getElementById('cpusage').innerText = obj.cpusage;
+                document.getElementById('cpuspeed').innerText = obj.cpuspeed;
+
+                document.getElementById('totalmem').innerText = obj.totalmem;
+                document.getElementById('usedmem').innerText = obj.usedmem;
+                document.getElementById('freemem').innerText = obj.freemem;
+                document.getElementById('freePercentagemem').innerText = obj.freePercentagemem;
+
+                document.getElementById('osplatform').innerText = obj.osplatform;
+                document.getElementById('osptype').innerText = obj.osptype;
+                document.getElementById('hostname').innerText = obj.hostname;
+                document.getElementById('username').innerText = obj.username;
+            })
+            socket.on('update', function(updates){
+                let update = JSON.parse(updates);
+                document.getElementById('uptime').innerText = update.osuptime;
+                document.getElementById('usedmem').innerText = update.usedmem;
+                document.getElementById('freemem').innerText = update.freemem;
+                document.getElementById('freePercentagemem').innerText = update.freePercentagemem;
+                document.getElementById('cpusage').innerText = update.cpusage;
+            })
+        </script>
+    </body>
+</html>

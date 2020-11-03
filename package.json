@@ -1,0 +1,24 @@
+{
+  "name": "livemonitor",
+  "version": "1.0.0",
+  "description": "A lite server monitoring tool for local usage",
+  "main": "app.js",
+  "bin": "app.js",
+  "pkg":{
+    "assets": ["node_modules/*/**", "public/*.html", "assets/*.css"]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["Monitoring", "Nodejs", "os", "os-utils", "express"],
+  "author": "Victor GUIGABE",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "get-port": "^5.1.1",
+    "open": "^7.3.0",
+    "os-utils": "0.0.14",
+    "socket.io": "^2.2.0"
+  }
+}

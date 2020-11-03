@@ -1,0 +1,131 @@
+*{
+    margin: 0;
+    box-sizing: border-box;
+    max-width: 100vw;
+    max-height: 100vh;
+}
+body{
+    background-color: rgb(43, 46, 45);
+    font-family: 'Poppins' sans-serif;
+}
+.maincontainer{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.authorname{
+    position: absolute;
+    top: 8px;
+    left: 50px;
+    padding: 5px;
+    cursor: none;
+}
+h3{
+    text-align: center;
+    margin: auto;
+    padding: 5px;
+}
+.value{
+    font-size: small;
+    font-weight: bold;
+    font-style: normal;
+}
+.name{
+    display: inline-block;
+}
+.blockinfo{
+    right: 30px;
+    margin: auto;
+    width: 50%;
+    margin-top: 5px;
+    transition: .5s ease all ;
+}
+.border-style{
+    border: none;
+    background-color: lightblue;
+    border-left: #0fdffd 1px solid;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+}
+.cpu{
+    position: absolute;
+    top: 60px;
+    height: 250px;
+}
+.mem{
+    position: absolute;
+    top: 350px;
+    height: 200px;
+}
+.trans:hover{
+    transform: scaleX(1.15);
+    -moz-transform: scaleX(1.15);
+    -webkit-transform: scaleX(1.15);
+    cursor: pointer;
+}
+.blockinfosys{
+    position: absolute;
+    top: 60px;
+    left: 50px;
+    height: 200px;
+    width: 380px;
+    transition: .5s ease all ;
+}
+ul{
+    list-style: none;
+}
+ul li{
+    margin: 15px;
+    padding: 5px;
+    height: 20px;
+    line-height: 15px;
+}
+.uptime{
+    position: absolute;
+    padding: 5px;
+    left: 50px;
+    top: 290px;
+}
+h4{
+    text-align: center;
+}
+
+@media only screen and ( max-width: 980px){
+    .authorname{
+        position: fixed;
+        top: 10px;
+        left: 20px;
+        padding: 5px;
+        font-size: small;
+    }
+    .value, .name {
+        font-size: smaller;  
+    }
+
+    .cpu{
+        position: absolute;
+        top: 75px;
+        height: 280px;
+    }
+    .mem{
+        position: absolute;
+        top: 400px;
+        height: 180px;
+    }
+
+    .blockinfosys{
+        position: absolute;
+        top: 75px;
+        left: 20px;
+        height: 180px;
+        width: 300px;
+        transition: .5s ease all ;
+    }
+    .uptime{
+        position: absolute;
+        left: 20px;
+        top: 290px;
+    }
+}
