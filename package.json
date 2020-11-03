@@ -5,7 +5,8 @@
   "main": "app.js",
   "bin": "app.js",
   "pkg":{
-    "assets": ["node_modules/*/**", "public/*.html", "assets/*.css"]
+    "assets": ["node_modules/*/**", "public/*.html", "assets/*.css"],
+    "scripts": "assets/*/*.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

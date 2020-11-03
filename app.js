@@ -8,31 +8,13 @@ const server = require('http').Server(app);
 const io = require("socket.io")(server);
 const path = require("path");
 const fs = require('fs');
-
+const fileprocess = require('./assets/js/script');
+const parseWithZero = require("./assets/js/utils");
 
 (async function(){
     const PORT = await getPort({port: 3000});
     const host = `http://127.0.0.1:${3000}`;
-    let d = new Date();
-    let fileExist = false;
-    let header = 'temps'+'\t\t'+'v_max_cpu'+'\t'+'prtg_cpu'+'\t'+'mem_tot'+'\t\t'+'mem_lib'+'\t\t'+'prtg_mem_lib'+'\t'+'mem_utilisee'+'\r\n';
-    
-    const filename = d.getFullYear().toString()+'_'+ parseWithZero(d.getMonth())+ '_'+parseWithZero(d.getDate())+'.log.txt';
-    let filepath =  path.join(__dirname, filename);
-
-    fs.access(filepath, fs.constants.F_OK, (err) =>{
-         if(err){
-             console.log(`${filepath} dosn't exist`);
-             fs.appendFile(filepath, header, (error) =>{
-                 if(error) throw error;
-                 console.log(`${filepath} created and header appended`);
-                 fileExist = true;
-             })
-         }else{
-            fileExist = true;
-            console.log(`${filepath} exist`);
-         }
-     })
+   let filepath =  fileprocess();
     let initialvalues = {
         cpumodel: os.cpus()[0].model,
         cpucore: osutils.cpuCount(),
@@ -69,12 +51,7 @@ const fs = require('fs');
         osutils.cpuUsage((usage) => {initialvalues.cpusage = (usage*100).toFixed(2) + '%'});
         console.log("Response sended");
     })
-    setInterval(() => {
-        if(fileExist) {
-            let ws = fs.createWriteStream(filepath, {flags: 'a'});
-            ws.write(statToLog());
-        }
-    },1000)
+    
     //Socketio Section 
     io.on('connection', (socket) =>{
         let setIntervalID = 0;
@@ -111,6 +88,12 @@ const fs = require('fs');
         }
         return parseWithZero(h)+":"+ parseWithZero(m) + ":"+ parseWithZero(ss)+"s";
     }
+    
+    setInterval(() => {
+        let ws = fs.createWriteStream(filepath, {flags: 'a'});
+        ws.write(statToLog());
+    },1000);
+
     function statToLog(){
         let d = new Date();
         let h = parseWithZero(d.getHours());
@@ -124,11 +107,6 @@ const fs = require('fs');
         let freemem = (osutils.freemem()/1024).toFixed(2);
         let freePercentagemem = (osutils.freememPercentage()*100).toFixed(2)+'%';;
         return t +'\t'+ cpumaxspeed +'\t\t'+ updatevalues.cpusage +'\t\t'+ totalmem +'\t\t'+ freemem +'\t\t'+ freePercentagemem +'\t\t'+ usedmem +'\r\n';
-    }
-
-    function parseWithZero(n){
-        if(n < 10) return '0'+n;
-        return ''+n;
     }
 
     server.listen(PORT, async() => {
