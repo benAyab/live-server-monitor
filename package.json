@@ -5,7 +5,7 @@
   "main": "app.js",
   "bin": "app.js",
   "pkg":{
-    "assets": ["node_modules/*/**", "public/*.html", "assets/*.css"],
+    "assets": ["node_modules/*/**", "public/*.html", "assets/*.css", "log/*.txt"],
     "scripts": "assets/*/*.js"
   },
   "scripts": {
