@@ -16,14 +16,14 @@ $ npm run start
 	Examples:
 
   – Makes executables for Linux, macOS and Windows
-    $ pkg index.js
+    $ pkg app.js
   – Takes package.json from cwd and follows 'bin' entry
     $ pkg .
   – Makes executable for particular target machine
-    $ pkg -t node6-alpine-x64 index.js
+    $ pkg -t node6-alpine-x64 app.js
   – Makes executables for target machines of your choice
-    $ pkg -t node4-linux,node6-linux,node6-win index.js
+    $ pkg -t node4-linux,node6-linux,node6-win app.js
   – Bakes '--expose-gc' into executable
-    $ pkg --options expose-gc index.js
+    $ pkg --options expose-gc app.js
 
 ```
