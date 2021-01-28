@@ -9,7 +9,7 @@
     <body onload="getinitialvalues()">
         <div class="maincontainer">
             <div class="authorname  border-style">
-               <h4>By GONGMOGA KIDANDI Henri & GUIGABE Victor</h4>
+               <h4>By GONGMOGA KIDANDI Henri & GUIGABE Victor  <a href="/config">Configurer la notification</a></h4>
             </div>
             <div class="uptime trans border-style"> 
                 <span> En service depuis: </span>
@@ -19,7 +19,6 @@
                 <h3> Processeur</h3>
                 <ul>
                     <li> <span class="name">Modèle: </span> <span class="value" id="cpumodel"></span> </li>
-                    <li> <span class="name">Coeurs : </span> <span class="value" id="cpucore"></span> </li>
                     <li> <span class="name">Processeurs logiques : </span> <span class="value" id="cpulog"></span></li>
                     <li> <span class="name">Architecture : </span> <span class="value" id="cpuarch"></span> </li>
                     <li> <span class="name">Vitesse Max: </span> <span class="value" id="cpuspeed"></span> </li>
@@ -57,16 +56,15 @@
                 document.getElementById('uptime').innerText = obj.osuptime;
 
                 document.getElementById('cpumodel').innerText = obj.cpumodel;
-                document.getElementById('cpucore').innerText = obj.cpucore;
                 document.getElementById('cpulog').innerText = obj.cpulog;
                 document.getElementById('cpuarch').innerText = obj.cpuarch;
                 document.getElementById('cpusage').innerText = obj.cpusage;
-                document.getElementById('cpuspeed').innerText = obj.cpuspeed;
+                document.getElementById('cpuspeed').innerText = obj.cpuspeed + '%';
 
-                document.getElementById('totalmem').innerText = obj.totalmem;
-                document.getElementById('usedmem').innerText = obj.usedmem;
-                document.getElementById('freemem').innerText = obj.freemem;
-                document.getElementById('freePercentagemem').innerText = obj.freePercentagemem;
+                document.getElementById('totalmem').innerText = obj.totalmem+' Go';
+                document.getElementById('usedmem').innerText = obj.usedmem+' Go';
+                document.getElementById('freemem').innerText = obj.freemem+' Go';
+                document.getElementById('freePercentagemem').innerText = obj.freePercentagemem+'%';
 
                 document.getElementById('osplatform').innerText = obj.osplatform;
                 document.getElementById('osptype').innerText = obj.osptype;
@@ -76,10 +74,10 @@
             socket.on('update', function(updates){
                 let update = JSON.parse(updates);
                 document.getElementById('uptime').innerText = update.osuptime;
-                document.getElementById('usedmem').innerText = update.usedmem;
-                document.getElementById('freemem').innerText = update.freemem;
-                document.getElementById('freePercentagemem').innerText = update.freePercentagemem;
-                document.getElementById('cpusage').innerText = update.cpusage;
+                document.getElementById('usedmem').innerText = update.usedmem+' Go';
+                document.getElementById('freemem').innerText = update.freemem+' Go';
+                document.getElementById('freePercentagemem').innerText = update.freePercentagemem+'%';
+                document.getElementById('cpusage').innerText = update.cpusage+'%';
             })
         </script>
     </body>

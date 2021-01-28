@@ -59,6 +59,22 @@ h3{
     top: 350px;
     height: 200px;
 }
+.config-container{
+    position: absolute;
+    left: 50px;
+    top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+.config{
+    width: 600px;
+    height: 400px;
+}
 .trans:hover{
     transform: scaleX(1.15);
     -moz-transform: scaleX(1.15);

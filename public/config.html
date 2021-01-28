@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport"  content="width=device-width, initial-scale=1.0"/>
+        <title> Live monitor/config</title>
+        <link href="style.css" rel="stylesheet"/>
+    </head>
+    <body onload="getSavedValues()">
+        <div class="border-style config-container">
+            <h3>Configuration d'envoi de notification</h3>
+            <div class="config">
+                <fieldset>
+                  <legend>Email</legend>
+                  <label for="email">Email actuel:</label><br>
+                  <input type="email" id="email" name="email" value="" required disabled>
+                   <input type="button" onclick="enableMailEdit()" value="Changer"><br><br>
+                </fieldset>
+                <fieldset>
+                    <legend>Valeurs seuil</legend>
+                    <label for="uprocess">Processeur:</label><br>
+                    
+                    <input type="range" id="cpuLoad" name="cpuLoad" step="5" list="tickmarks1">
+                    <datalist id="tickmarks1">
+                        <option value="0" label="0%">
+                        <option value="10">
+                        <option value="20">
+                        <option value="30">
+                        <option value="40">
+                        <option value="50" label="50%">
+                        <option value="60">
+                        <option value="70">
+                        <option value="80">
+                        <option value="90">
+                        <option value="100" label="100%">
+                      </datalist>
+                      <span id="cpuLimit"></span><br><br>
+                    <label for="memory">Mémoire:</label><br>
+                
+                    <input type="range" id="memory" name="memory" step="5" list="tickmarks2">
+                    <datalist id="tickmarks2">
+                        <option value="0" label="0%">
+                        <option value="10">
+                        <option value="20">
+                        <option value="30">
+                        <option value="40">
+                        <option value="50" label="50%">
+                        <option value="60">
+                        <option value="70">
+                        <option value="80">
+                        <option value="90">
+                        <option value="100" label="100%">
+                      </datalist>
+                    <span id="memoryLimit"></span><br>
+                </fieldset>
+                  <input type="button" onclick="save()" value="Enregistrer">
+            </div>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+
+            emailChanged = false;
+            cpuLimChanged = false;
+            memLimChanged = false;
+
+            let value = {
+                email: "",
+                cpuLimit: "",
+                memLimit: ""
+            };
+
+            function getSavedValues(){
+                socket.emit('getSavedValues');
+            }
+
+            socket.on('savedValues', function(val){
+                var saved = JSON.parse(val);
+                document.getElementById("email").value = saved.email;
+                document.getElementById('memory').value = saved.memLimit;
+                document.getElementById('cpuLoad').value = saved.cpuLimit;
+                document.getElementById("memoryLimit").innerText = saved.memLimit;
+                document.getElementById("cpuLimit").innerText = saved.cpuLimit;
+                value.email = saved.email;
+                value.cpuLimit = saved.cpuLimit;
+                value.memLimit = saved.memLimit;
+            });
+            socket.on("onsaved", function(msg){
+                if(parseInt(msg) == 0){
+                    alert("Paramètres enregistés avec succes !");
+                    location.replace("/");
+                }else{
+                    alert("Erreur lors d'enregistrement des paramètres ");
+                    location.replace("/");
+                }
+            });
+
+            function enableMailEdit(){
+                document.getElementById("email").disabled = false;
+                emailChanged = true;
+            }
+
+            document.getElementById("memory").addEventListener("change", function(evt){
+                document.getElementById("memoryLimit").innerText = evt.target.value;
+                value.memLimit = evt.target.value;
+                memLimChanged = true;
+            });
+
+            document.getElementById("cpuLoad").addEventListener("change", function(evt){
+                document.getElementById("cpuLimit").innerText = evt.target.value;
+                value.cpuLimit = evt.target.value;
+                cpuLimChanged = true;
+            });
+
+            function save(){
+                if(emailChanged === true){
+                    value.email = document.getElementById("email").value;
+                    socket.emit("saveNewValue", JSON.stringify(value));
+                } else if( cpuLimChanged === true || memLimChanged === true){
+                    socket.emit("saveNewValue", JSON.stringify(value));
+                }else{
+                    location.replace("/");
+                }
+                
+            }
+        </script>
+    </body>
+</html>
