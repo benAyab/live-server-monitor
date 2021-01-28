@@ -18,14 +18,14 @@ const { F_OK } = require("constants");
 
     //Variables and constants
     const PORT = await getPort({port: 3000});
-    const host = `http://127.0.0.1:${3000}`;
+    const host = `http://127.0.0.1:${PORT}`;
     const defaultEmail = 'example@domain.com';
 
    let filepath =  fileprocess();
    let configpath = path.join(__dirname, 'config/config.txt');
    let lastTencpu = [];
    let lastTenMem = [];
-   let counter = 180000;
+   let counter = 60000;
    let arrayIsFull = false;
    let emailflag = false;
 
@@ -80,7 +80,7 @@ const { F_OK } = require("constants");
     /*
     * We serve HTML file here, like static
     */
-    app.use(express.static(path.join(__dirname, '/assets')));
+    app.use("/assets",express.static(path.join(__dirname, 'assets')));
     //Sending HTML file on request from  "/" route
     app.get("/", (req, res, next) =>{
         res.status(200) 
@@ -101,11 +101,6 @@ const { F_OK } = require("constants");
         let setIntervalID = 0;
 
         setIntervalID = setInterval(() => {
-            osutils.cpuUsage((usage) => {updatevalues.cpusage  = (usage*100).toFixed(2)});
-            updatevalues.freePercentagemem =  (osutils.freememPercentage()*100).toFixed(2);
-            updatevalues.freemem = (osutils.freemem()/1024).toFixed(2);
-            updatevalues.usedmem = (osutils.totalmem()/1024 - osutils.freemem()/1024).toFixed(2);
-            updatevalues.osuptime = parseUptime(osutils.sysUptime());
             io.emit('update', JSON.stringify(updatevalues));
         }, 1000);
 
@@ -124,7 +119,7 @@ const { F_OK } = require("constants");
             value.cpuLimit = v.cpuLimit;
             value.memLimit = v.memLimit;
             socket.emit("onsaved", '0');
-            console.log(value);
+            //console.log(value);
             try{
                 fs.writeFileSync(configpath, v.email+","+v.cpuLimit+","+v.memLimit);
             }catch(err){ 
@@ -134,12 +129,13 @@ const { F_OK } = require("constants");
         });
 
         socket.on('disconnect', () => {
-            console.log(" User disconnected !");
+            //console.log(" User disconnected !");
             clearInterval(setIntervalID);
         });
     });
 
     setInterval(() => {
+        updateProcess();
         if(parseInt(updatevalues.cpusage) !== 0){
             let ws = fs.createWriteStream(filepath, {flags: 'a'});
             ws.write(statToLog());
@@ -147,8 +143,6 @@ const { F_OK } = require("constants");
         if(!arrayIsFull){
             lastTencpu.push(parseFloat(updatevalues.cpusage));
             lastTenMem.push(100.0 - parseFloat(updatevalues.freePercentagemem));
-            console.log("Pushed cpuUsage ", lastTencpu);
-            console.log("Pushed Mem ", lastTenMem)
             if(lastTenMem.length >= 10 || lastTencpu.length >= 10){
                 arrayIsFull = true;
             }
@@ -159,7 +153,36 @@ const { F_OK } = require("constants");
             }
             lastTenMem[9] = 100.0 - parseFloat(updatevalues.freePercentagemem);
             lastTencpu[9] = parseFloat(updatevalues.cpusage);
-            console.log("Values in arrays: ", lastTencpu, lastTenMem);
+
+            let lastTenSumCPU = lastTencpu.reduce((total, val) => {
+                return total + val;
+            },0.0);
+
+            let lastTenSumMem = lastTenMem.reduce((total, val) => {
+                return total + val;
+            }, 0.0);
+
+            if(((lastTenSumCPU/10) >= parseFloat(value.cpuLimit)) || ((lastTenSumMem/10) >= parseFloat(value.memLimit))){
+                if(emailflag === false || counter >= 60000){
+                    mailOptions.to = value.email;
+                    mailOptions.text = "Charge CPU: "+ (lastTenSumCPU/10).toFixed(2)+"%, Mémoire: "+(lastTenSumMem/10).toFixed(2)+"%";
+                    transporter.sendMail(mailOptions, (err, data) =>{
+                        if(err){
+                            emailflag = false;
+                            //console.log("Email error: ", err);
+                        }else{
+                            emailflag = true;
+                            counter = 0;
+                            //console.log("Email sent", data);
+                        }
+                    })
+                }else{
+                    if(counter >= 30000){
+                        emailflag = true;
+                        counter = 0;
+                    }else{ counter++;}
+                }
+            }
         }
     },1000);
 
@@ -187,6 +210,15 @@ const { F_OK } = require("constants");
 
     }    
 
+    //Udating values
+    function updateProcess(){
+        osutils.cpuUsage((usage) => {updatevalues.cpusage  = (usage*100).toFixed(2)});
+        updatevalues.freePercentagemem =  (osutils.freememPercentage()*100).toFixed(2);
+        updatevalues.freemem = (osutils.freemem()/1024).toFixed(2);
+        updatevalues.usedmem = (osutils.totalmem()/1024 - osutils.freemem()/1024).toFixed(2);
+        updatevalues.osuptime = parseUptime(osutils.sysUptime());
+    }
+
     //We set format of uptime here
     function parseUptime(val){
         let n = parseInt(val);
@@ -203,6 +235,7 @@ const { F_OK } = require("constants");
         return parseWithZero(h)+":"+ parseWithZero(m) + ":"+ parseWithZero(ss)+"s";
     }
 
+    // save data in file
     function statToLog(){
         let d = new Date();
         let h = parseWithZero(d.getHours());

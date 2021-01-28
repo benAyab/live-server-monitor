@@ -8,9 +8,9 @@
     "assets": [
       "node_modules/*/**",
       "public/*.html",
-      "assets/*.css",
       "log/*.txt",
-      "config/*.txt"
+      "config/*.txt",
+      "assets/*.css"
     ],
     "scripts": "assets/*/*.js"
   },

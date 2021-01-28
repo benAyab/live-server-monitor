@@ -22,6 +22,18 @@ body{
     padding: 5px;
     cursor: none;
 }
+.section-nav{
+    position: absolute;
+    top: 8px;
+    right: 50px;
+    padding: 5px;
+    cursor: pointer;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+.section-nav h4 a{
+    text-decoration: none;
+}
 h3{
     text-align: center;
     margin: auto;
