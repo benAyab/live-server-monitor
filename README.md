@@ -5,8 +5,8 @@
 $ clone this project 
 $ npm install
 
-# run node server 
-$ npm run start
+## run node server 
+$ node app
 ```
 
 ### Build your native exec
