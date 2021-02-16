@@ -8,10 +8,11 @@ const server = require('http').Server(app);
 const io = require("socket.io")(server);
 const path = require("path");
 const fs = require('fs');
+const cores = require('physical-cpu-count');
 const nodemailer = require("nodemailer");
-const fileprocess = require('./assets/js/script');
-const parseWithZero = require("./assets/js/utils");
-const user = require('./assets/js/helper');
+const fileprocess = require('./src/script');
+const parseWithZero = require("./src/utils");
+const user = require('./src/helper');
 const { F_OK } = require("constants");
 
 (async function(){
@@ -20,8 +21,15 @@ const { F_OK } = require("constants");
     const PORT = await getPort({port: 3000});
     const host = `http://127.0.0.1:${PORT}`;
     const defaultEmail = 'example@domain.com';
+    if(!fs.existsSync('./log')){
+        fs.mkdirSync('./log', { recursive: true});
+    }
+    if(!fs.existsSync('./config')){
+        fs.mkdirSync('./config', { recursive: true});
+    }
 
    let filepath =  fileprocess();
+
    let configpath = path.join(__dirname, 'config/config.txt');
    let lastTencpu = [];
    let lastTenMem = [];
@@ -31,6 +39,7 @@ const { F_OK } = require("constants");
 
    let initialvalues = {
         cpumodel: os.cpus()[0].model,
+        cpucores: cores,
         cpulog: osutils.cpuCount(),
         cpuarch: os.arch(),
         cpusage: 0,
@@ -101,7 +110,7 @@ const { F_OK } = require("constants");
         let setIntervalID = 0;
 
         setIntervalID = setInterval(() => {
-            io.emit('update', JSON.stringify(updatevalues));
+            io.emit('updates', JSON.stringify(updatevalues));
         }, 1000);
 
         

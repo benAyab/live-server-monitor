@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport"  content="width=device-width, initial-scale=1.0"/>
+        <title> Live monitor</title>
+        <style type="text/css">
+            *{
+                margin: 0;
+                box-sizing: border-box;
+                max-width: 100vw;
+                max-height: 100vh;
+            }
+            body{
+                background-color: rgb(43, 46, 45);
+                font-family: 'Poppins' sans-serif;
+            }
+            .maincontainer{
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+            .authorname{
+                position: absolute;
+                top: 8px;
+                left: 50px;
+                padding: 5px;
+                cursor: none;
+            }
+            .section-nav{
+                position: absolute;
+                top: 8px;
+                right: 50px;
+                padding: 5px;
+                cursor: pointer;
+                border-top-right-radius: 15px;
+                border-bottom-right-radius: 15px;
+            }
+            .section-nav h4 a{
+                text-decoration: none;
+            }
+            h3{
+                text-align: center;
+                margin: auto;
+                padding: 5px;
+            }
+            .value{
+                font-size: small;
+                font-weight: bold;
+                font-style: normal;
+            }
+            .name{
+                display: inline-block;
+            }
+            .blockinfo{
+                right: 30px;
+                margin: auto;
+                width: 50%;
+                margin-top: 5px;
+                transition: .5s ease all ;
+            }
+            .border-style{
+                border: none;
+                background-color: lightblue;
+                border-left: #0fdffd 1px solid;
+                border-top-left-radius: 15px;
+                border-bottom-left-radius: 15px;
+            }
+            .cpu{
+                position: absolute;
+                top: 60px;
+                height: 250px;
+            }
+            .cpu-chart-container{
+                position: absolute;
+                top: 120px;
+                height: 200;
+                width: 300;
+                right: 10px;
+            }
+            .mem{
+                position: absolute;
+                top: 350px;
+                height: 200px;
+            }
+            .blockinfosys{
+                position: absolute;
+                top: 60px;
+                left: 50px;
+                height: 200px;
+                width: 380px;
+                transition: .5s ease all ;
+            }
+            ul{
+                list-style: none;
+            }
+            ul li{
+                margin: 15px;
+                padding: 5px;
+                height: 20px;
+                line-height: 15px;
+            }
+            .uptime{
+                position: absolute;
+                padding: 5px;
+                left: 50px;
+                top: 290px;
+            }
+            h4{
+                text-align: center;
+            }
+
+            @media only screen and ( max-width: 980px){
+                .authorname{
+                    position: fixed;
+                    top: 10px;
+                    left: 20px;
+                    padding: 5px;
+                    font-size: small;
+                }
+                .value, .name {
+                    font-size: smaller;  
+                }
+
+                .cpu{
+                    position: absolute;
+                    top: 75px;
+                    height: 280px;
+                }
+                .mem{
+                    position: absolute;
+                    top: 400px;
+                    height: 180px;
+                }
+
+                .blockinfosys{
+                    position: absolute;
+                    top: 75px;
+                    left: 20px;
+                    height: 180px;
+                    width: 300px;
+                    transition: .5s ease all ;
+                }
+                .uptime{
+                    position: absolute;
+                    left: 20px;
+                    top: 290px;
+                }
+            }
+        </style>
+
+    </head>
+    <body onload="getinitialvalues()">
+        <div class="maincontainer">
+            <div class="authorname  border-style">
+               <h4>By GONGMOGA KIDANDI Henri & GUIGABE Victor </h4>
+            </div>
+
+            <div class="section-nav border-style">
+                <h4> <a href="/config">Configurer la notification</a> </h4>
+            </div>
+            <div class="uptime  border-style"> 
+                <span> En service depuis: </span>
+                <h4> <span id="uptime"></span> </h4>
+            </div>
+            <div class="blockinfo cpu border-style">
+                <h3> Processeur</h3>
+                <ul>
+                    <li> <span class="name">Modèle: </span> <span class="value" id="cpumodel"></span> </li>
+                    <li> <span class="name">Coeurs: </span> <span class="value" id="cpucores"></span> </li>
+                    <li> <span class="name">Processeurs logiques : </span> <span class="value" id="cpulog"></span></li>
+                    <li> <span class="name">Architecture : </span> <span class="value" id="cpuarch"></span> </li>
+                    <li> <span class="name">Vitesse Max: </span> <span class="value" id="cpuspeed"></span> </li>
+                    <li> <span class="name">Utilisation: </span> <span class="value" id="cpusage"></span> </li>
+                </ul>
+                <div class="cpu-chart-container">
+                    <canvas id="linechart"></canvas>
+                </div>
+            </div>
+            <div class="blockinfo mem border-style">
+                <h3> Mémoire</h3>
+                <ul>
+                    <li> <span class="name">Totale: </span>  <span class="value" id='totalmem'></span> </li>
+                    <li> <span class="name">En cours d'utilisation: </span> <span class="value" id='usedmem'></span> </li>
+                    <li> <span class="name">Disponible: </span> <span class="value" id='freemem'></span> </li>
+                    <li> <span class="name"> Disponible (%): </span> <span class="value" id='freePercentagemem'></span> </li>
+                </ul>
+            </div>
+            <div class="blockinfosys border-style">
+                <h4> Système et hôte</h4>
+                <ul>
+                    <li> <span class="name">Plateforme: </span> <span class="value" id='osplatform'></span> </li>
+                    <li> <span class="name">Type: </span> <span class="value" id='osptype'></span> </li>
+                    <li> <span class="name">Nom de la machine: </span> <span class="value" id='hostname'></span> </li>
+                    <li> <span class="name">Utilisateur: </span> <span class="value" id='username'></span> </li>
+                </ul>
+            </div>
+        </div>
+
+        <script src="Chart.min.js"></script>
+        <script>
+            var config = {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            fill: true,
+                            label: "",
+                            backgroundColor: '#0fdffd',
+                            borderColor: '#0fdfff',
+                            data: []
+                        }],
+                    },
+                    options: {
+                        responsive: false,
+                        title: {
+                            display: false,
+                            text: ''
+                        },
+                        tooltips: {
+                            mode: 'index',
+                            intersect: true
+                        },
+                        hover: {
+                            mode: 'nearest',
+                            intersect: true
+                        },
+                        scales: {
+                            xAxes: [{
+                                display: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Temps en s'
+                                }
+                            }],
+                            yAxes: [{
+                                display: true,
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: ''
+                                }
+                            }]
+                        }
+                    }
+            }
+           
+            var cpucharge = 0.0;
+            var ctx = document.getElementById('linechart').getContext('2d');
+            window.myCanvas = new Chart(ctx, config);
+            
+
+            setInterval(function (){
+            
+                var datalength = config.data.datasets[0].data.length;
+                if(datalength < 10){
+                    config.data.datasets[0].data.push(Math.random()*100);
+                    for(i=0; i<datalength-1; i++){
+                        config.data.labels[i] = datalength-1-i;
+                    }
+                    config.data.labels[datalength-1] = '0';
+                }
+                else{
+                    if(datalength === 10){
+                    	for (var  i = 0;  i <= datalength - 2; i++) {
+	                    config.data.datasets[0].data[i] = config.data.datasets[0].data[i+1];
+	                    config.data.labels[i] = 9-i;
+	                    }
+                    	config.data.datasets[0].data[9] =  Math.random()*100;
+                    	config.data.labels[9] = 0;
+                    }
+                    
+                }
+                window.myCanvas.update();
+            }, 1000);
+
+            
+        </script>
+    </body>
+</html>
