@@ -30,7 +30,7 @@ const { F_OK } = require("constants");
 
    let filepath =  fileprocess();
 
-   let configpath = path.join(__dirname, 'config/config.txt');
+   let configpath = path.join('config/','config.txt');
    let lastTencpu = [];
    let lastTenMem = [];
    let counter = 60000;
