@@ -86,7 +86,7 @@
                 value.memLimit = saved.memLimit;
             });
             socket.on("onsaved", function(msg){
-                if(parseInt(msg) == 0){
+                if(parseInt(msg) === 0){
                     alert("Paramètres enregistés avec succes !");
                     location.replace("/");
                 }else{

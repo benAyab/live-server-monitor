@@ -5,30 +5,46 @@ window.chartColors = {
     green: 'rgb(75, 192, 192)',
     blue: 'rgb(54, 162, 235)',
     purple: 'rgb(153, 102, 255)',
-    grey: 'rgb(201, 203, 207)'
+    grey: 'rgba(201, 203, 207,0.2)'
 };
 
 var config = {
     type: 'line',
     data: {
-        labels: [],
+        labels: ['14','13','12','11','10','9','8','7','6','5','4','3','2','1','0'],
         datasets: [{
             fill: true,
-            label: "",
             backgroundColor: window.chartColors.grey,
             borderColor: '#777777',
-            data: []
+            data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         }],
     },
     options: {
-        responsive: true,
+        responsive: false,
         title: {
             display: false,
-            text: ''
+        },
+        animation: {
+            duration: 0
+        },
+        elements: {
+            point: {
+                radius: 0
+            },
+            line: {
+            	borderWidth: 1,
+            	tension: 0,
+            	backgroundColor: window.chartColors.grey
+            },
+            bar: {
+            	borderWidth: 0
+            }
+        },
+        legend: {
+        	display: false
         },
         tooltips: {
-            mode: 'index',
-            intersect: true
+        	enabled: false
         },
         hover: {
             mode: 'nearest',
@@ -40,10 +56,15 @@ var config = {
                 scaleLabel: {
                     display: true,
                     labelString: 'Temps en s'
-                }
+                },
             }],
             yAxes: [{
                 display: true,
+                ticks: {
+		          autoSkip: false,
+		          min: 0,
+		          max: 100
+		        },
                 scaleLabel: {
                     display: true,
                     labelString: ''
@@ -76,7 +97,7 @@ var config1 = {
         },
         title: {
             display: true,
-            text: 'Charge mémoire'
+            text: 'Utilisation de la mémoire'
         },
         animation: {
             animateScale: true,

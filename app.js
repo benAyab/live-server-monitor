@@ -10,7 +10,8 @@ const path = require("path");
 const fs = require('fs');
 const cores = require('physical-cpu-count');
 const nodemailer = require("nodemailer");
-const fileprocess = require('./src/script');
+const sqlite3 = require('sqlite3').verbose();
+const {fileprocess, databaseCreateDir} = require('./src/script');
 const parseWithZero = require("./src/utils");
 const user = require('./src/helper');
 const { F_OK } = require("constants");
@@ -21,6 +22,7 @@ const { F_OK } = require("constants");
     const PORT = await getPort({port: 3000});
     const host = `http://127.0.0.1:${PORT}`;
     const defaultEmail = 'example@domain.com';
+    
     if(!fs.existsSync('./log')){
         fs.mkdirSync('./log', { recursive: true});
     }
@@ -28,12 +30,34 @@ const { F_OK } = require("constants");
         fs.mkdirSync('./config', { recursive: true});
     }
 
-   let filepath =  fileprocess();
+   let filepath = fileprocess();
+   databaseCreateDir();
+   let database = new sqlite3.Database('./data/historique.db', (err) =>{
+       if(err){
+        console.error('Erreur: ', err);
+           process.exit(1);
+       }
+   })
+    process.on('exit', (code) =>{
+        database.close();
+    })
+    let sqlCreate = "CREATE TABLE IF NOT EXISTS performance(";
+    sqlCreate += "date TEXT NOT NULL";
+    sqlCreate += ",heure TEXT NOT NULL";
+    sqlCreate += ",v_max_cpu TEXT NOT NULL";
+    sqlCreate += ",pourcentage_cpu TEXT NOT NULL";
+    sqlCreate += ",mem_tot TEXT NOT NULL";
+    sqlCreate += ",mem_lib TEXT NOT NULL";
+    sqlCreate += ",mem_utilisee TEXT NOT NULL";
+    sqlCreate += ")";
+
+    database.run(sqlCreate);
 
    let configpath = path.join('config/','config.txt');
    let lastTencpu = [];
    let lastTenMem = [];
-   let counter = 60000;
+   let counter = 60;
+   let dbDelay = 0;
    let arrayIsFull = false;
    let emailflag = false;
 
@@ -142,13 +166,33 @@ const { F_OK } = require("constants");
             clearInterval(setIntervalID);
         });
     });
-
+    
     setInterval(() => {
         updateProcess();
         if(parseInt(updatevalues.cpusage) !== 0){
             let ws = fs.createWriteStream(filepath, {flags: 'a'});
             ws.write(statToLog());
         }
+
+        if(dbDelay >= 30){
+            let d = new Date();
+            let heure = parseWithZero(d.getHours())+':'+parseWithZero(d.getMinutes())+':'+parseWithZero(d.getSeconds());
+            let jour = d.getFullYear().toString()+'/'+ parseWithZero(d.getMonth()+1)+ '/'+parseWithZero(d.getDate());
+
+            let insertRequest = "INSERT INTO performance(date,heure,v_max_cpu,pourcentage_cpu,mem_tot,mem_lib,mem_utilisee)";
+            insertRequest += "VALUES (";
+            insertRequest += '"'+jour+'","'+heure+'","'+initialvalues.cpuspeed+'","'+updatevalues.cpusage+'","'+initialvalues.totalmem+'","'+updatevalues.freemem+'","'+updatevalues.usedmem+'")';
+            
+            database.run(insertRequest, (result, err) =>{
+                if(err){
+                   return console.error(err.message);
+                }
+            })
+            dbDelay = 1
+        }else{
+            dbDelay++
+        }
+
         if(!arrayIsFull){
             lastTencpu.push(parseFloat(updatevalues.cpusage));
             lastTenMem.push(100.0 - parseFloat(updatevalues.freePercentagemem));
@@ -172,7 +216,7 @@ const { F_OK } = require("constants");
             }, 0.0);
 
             if(((lastTenSumCPU/10) >= parseFloat(value.cpuLimit)) || ((lastTenSumMem/10) >= parseFloat(value.memLimit))){
-                if(emailflag === false || counter >= 60000){
+                if(emailflag === false || counter >= 60){
                     mailOptions.to = value.email;
                     mailOptions.text = "Charge CPU: "+ (lastTenSumCPU/10).toFixed(2)+"%, Mémoire: "+(lastTenSumMem/10).toFixed(2)+"%";
                     transporter.sendMail(mailOptions, (err, data) =>{
@@ -185,16 +229,12 @@ const { F_OK } = require("constants");
                             //console.log("Email sent", data);
                         }
                     })
-                }else{
-                    if(counter >= 30000){
-                        emailflag = true;
-                        counter = 0;
-                    }else{ counter++;}
                 }
-            }
+            }else{ counter++}
         }
     },1000);
 
+    // We get configuration values here
     function getThresholdValues(){
         fs.access(configpath, F_OK, (error) =>{
             if(error){
@@ -216,7 +256,6 @@ const { F_OK } = require("constants");
                 }catch(err){ console.log("Erreur est survenue pendant la lecture ",err.stack); }
             }
         });
-
     }    
 
     //Udating values
@@ -228,7 +267,7 @@ const { F_OK } = require("constants");
         updatevalues.osuptime = parseUptime(osutils.sysUptime());
     }
 
-    //We set format of uptime here
+    //Mise en forme de données de durée de travail
     function parseUptime(val){
         let n = parseInt(val);
         let h = Math.floor(n/3600);
@@ -256,7 +295,7 @@ const { F_OK } = require("constants");
         let totalmem = (osutils.totalmem()/1024.).toFixed(2);
         let usedmem =  (osutils.totalmem()/1024 - osutils.freemem()/1024).toFixed(2);
         let freemem = (osutils.freemem()/1024).toFixed(2);
-        let freePercentagemem = (osutils.freememPercentage()*100).toFixed(2)+'%';
+        let freePercentagemem = (osutils.freememPercentage()*100).toFixed(2);
         return t +'\t'+ cpumaxspeed +'\t\t'+ updatevalues.cpusage +'\t\t'+ totalmem +'\t\t'+ freemem +'\t\t'+ freePercentagemem +'\t\t'+ usedmem +'\r\n';
     }
 

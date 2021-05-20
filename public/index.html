@@ -9,7 +9,7 @@
     <body onload="getinitialvalues()">
         <div class="maincontainer">
             <div class="authorname  border-style">
-               <h4>By GONGMOGA KIDANDI Henri & GUIGABE Victor </h4>
+               <h4>By GUIGABE Victor  & GONGMOGA KIDANDI Henri</h4>
             </div>
 
             <div class="section-nav border-style">
@@ -30,7 +30,7 @@
                     <li> <span class="name">Utilisation: </span> <span class="value" id="cpusage"></span> </li>
                 </ul>
                 <div class="cpu-chart-container">
-                    <canvas id="linechart"></canvas>
+                    <canvas id="linechart" width="400" height="170"></canvas>
                 </div>
             </div>
             <div class="blockinfo mem border-style">
@@ -114,32 +114,22 @@
                 document.getElementById('freePercentagemem').innerText = update.freePercentagemem+'%';
                 document.getElementById('usedpmem').innerText = mm +'%';
                 document.getElementById('cpusage').innerText = update.cpusage+'%';
-            });
 
-            setInterval(function (){
-            var datalength = config.data.datasets[0].data.length;
-            config1.data.datasets[0].data[0] = memLibre;
-            config1.data.datasets[0].data[1] = memUsed;
-            if(datalength < 10){
-                config.data.datasets[0].data.push(cpucharge);
-                for(i=0; i<datalength-1; i++){
-                    config.data.labels[i] = datalength-1-i;
-                }
-                config.data.labels[datalength-1] = '0';
-            }
-            else{
-                if(datalength === 10){
-                    for (var  i = 0;  i <= datalength - 2; i++) {
-                    config.data.datasets[0].data[i] = config.data.datasets[0].data[i+1];
-                    config.data.labels[i] = 9-i;
-                    }
-                    config.data.datasets[0].data[9] =  cpucharge;
-                    config.data.labels[9] = 0;
-                } 
-            }
-            window.myDoughnut.update();
-            window.myCanvas.update();
-        }, 1000);
+                var datalength = config.data.datasets[0].data.length;
+	            config1.data.datasets[0].data[0] = memLibre;
+	            config1.data.datasets[0].data[1] = memUsed;
+	                if(datalength === 15){
+	                    for (var  i = 0;  i <= datalength - 2; i++) {
+	                    config.data.datasets[0].data[i] = config.data.datasets[0].data[i+1];
+	                    }
+	                    config.data.datasets[0].data[14] =  cpucharge;
+	                } 
+	            
+	            window.myDoughnut.update();
+	            window.myCanvas.update();
+	            });
+
+            //setInterval(function (){}, 1000);
         </script>
     </body>
 </html>
