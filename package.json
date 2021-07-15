@@ -1,6 +1,6 @@
 {
   "name": "livemonitor",
-  "version": "0.2.0",
+  "version": "0.9.0",
   "description": "A lite server monitoring tool for local usage",
   "main": "app.js",
   "bin": "app.js",
@@ -8,6 +8,7 @@
     "assets": [
       "node_modules/**/*",
       "public/*.html",
+      "data/*.db",
       "log/*.txt",
       "config/*.txt",
       "assets/**/*"
@@ -34,7 +35,6 @@
     "open": "^7.3.0",
     "os-utils": "0.0.14",
     "physical-cpu-count": "^2.0.0",
-    "sequelize": "^6.6.2",
     "socket.io": "^2.4.1",
     "sqlite3": "^5.0.2"
   }

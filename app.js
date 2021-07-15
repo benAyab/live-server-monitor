@@ -17,7 +17,6 @@ const user = require('./src/helper');
 const { F_OK } = require("constants");
 
 (async function(){
-
     //Variables and constants
     const PORT = await getPort({port: 3000});
     const host = `http://127.0.0.1:${PORT}`;
@@ -26,13 +25,15 @@ const { F_OK } = require("constants");
     if(!fs.existsSync('./log')){
         fs.mkdirSync('./log', { recursive: true});
     }
+
     if(!fs.existsSync('./config')){
         fs.mkdirSync('./config', { recursive: true});
     }
 
-   let filepath = fileprocess();
+   const filepath = fileprocess();
+
    databaseCreateDir();
-   let database = new sqlite3.Database('./data/historique.db', (err) =>{
+   const database = new sqlite3.Database('./data/historique.db', (err) =>{
        if(err){
         console.error('Erreur: ', err);
            process.exit(1);
@@ -40,7 +41,8 @@ const { F_OK } = require("constants");
    })
     process.on('exit', (code) =>{
         database.close();
-    })
+    });
+
     let sqlCreate = "CREATE TABLE IF NOT EXISTS performance(";
     sqlCreate += "date TEXT NOT NULL";
     sqlCreate += ",heure TEXT NOT NULL";
@@ -53,13 +55,18 @@ const { F_OK } = require("constants");
 
     database.run(sqlCreate);
 
-   let configpath = path.join('config/','config.txt');
+   const configpath = path.join('config/','config.txt');
    let lastTencpu = [];
    let lastTenMem = [];
-   let counter = 60;
-   let dbDelay = 0;
-   let arrayIsFull = false;
-   let emailflag = false;
+
+   //	Controls variables
+   let counter = 0;
+   let dbDelay = 0; // Timer to save new value to database
+
+   //FLAGS
+   let arrayIsFull = false; // Have-we at leas 10 previous values ?
+   let emailflag = false; // Any email are sent ?
+   let isSending = false; // To avoid sending consecutif mail
 
    let initialvalues = {
         cpumodel: os.cpus()[0].model,
@@ -77,7 +84,7 @@ const { F_OK } = require("constants");
         osuptime: parseUptime(osutils.sysUptime()),
         hostname: os.hostname(),
         username: os.userInfo().username
-    }
+    };
 
     let updatevalues = {
         cpusage: 0.0,
@@ -134,12 +141,12 @@ const { F_OK } = require("constants");
         let setIntervalID = 0;
 
         setIntervalID = setInterval(() => {
-            io.emit('updates', JSON.stringify(updatevalues));
+            socket.emit('updates', JSON.stringify(updatevalues));
         }, 1000);
 
         
         socket.on('getfirstvalues', () =>{
-            io.emit('firstval', JSON.stringify(initialvalues));
+            socket.emit('firstval', JSON.stringify(initialvalues));
         });
 
         socket.on('getSavedValues', () =>{
@@ -151,10 +158,10 @@ const { F_OK } = require("constants");
             value.email = v.email;
             value.cpuLimit = v.cpuLimit;
             value.memLimit = v.memLimit;
-            socket.emit("onsaved", '0');
             //console.log(value);
             try{
                 fs.writeFileSync(configpath, v.email+","+v.cpuLimit+","+v.memLimit);
+                socket.emit("onsaved", '0');
             }catch(err){ 
                 socket.emit("onsaved", '1');
                 console.log("Erreur d'enregistrement des paramètres ", err.stack);
@@ -167,14 +174,29 @@ const { F_OK } = require("constants");
         });
     });
     
+
+    // Functions section
+    /*
+    *	All utilities are below
+    */
+
+    //Updating values
+    function updateProcess(){
+        osutils.cpuUsage((usage) => {updatevalues.cpusage  = (usage*100).toFixed(2)});
+        updatevalues.freePercentagemem =  (osutils.freememPercentage()*100).toFixed(2);
+        updatevalues.freemem = (osutils.freemem()/1024).toFixed(2);
+        updatevalues.usedmem = (osutils.totalmem()/1024 - osutils.freemem()/1024).toFixed(2);
+        updatevalues.osuptime = parseUptime(osutils.sysUptime());
+    }
+
     setInterval(() => {
         updateProcess();
-        if(parseInt(updatevalues.cpusage) !== 0){
-            let ws = fs.createWriteStream(filepath, {flags: 'a'});
-            ws.write(statToLog());
-        }
-
-        if(dbDelay >= 30){
+        
+        if(dbDelay >= 60){
+            if(parseInt(updatevalues.cpusage) !== 0){
+                let ws = fs.createWriteStream(filepath, {flags: 'a'});
+                ws.write(statToLog());
+            }
             let d = new Date();
             let heure = parseWithZero(d.getHours())+':'+parseWithZero(d.getMinutes())+':'+parseWithZero(d.getSeconds());
             let jour = d.getFullYear().toString()+'/'+ parseWithZero(d.getMonth()+1)+ '/'+parseWithZero(d.getDate());
@@ -188,7 +210,7 @@ const { F_OK } = require("constants");
                    return console.error(err.message);
                 }
             })
-            dbDelay = 1
+            dbDelay = 0
         }else{
             dbDelay++
         }
@@ -207,29 +229,43 @@ const { F_OK } = require("constants");
             lastTenMem[9] = 100.0 - parseFloat(updatevalues.freePercentagemem);
             lastTencpu[9] = parseFloat(updatevalues.cpusage);
 
-            let lastTenSumCPU = lastTencpu.reduce((total, val) => {
+            const lastTenSumCPU = lastTencpu.reduce((total, val) => {
                 return total + val;
             },0.0);
 
-            let lastTenSumMem = lastTenMem.reduce((total, val) => {
+            const lastTenSumMem = lastTenMem.reduce((total, val) => {
                 return total + val;
             }, 0.0);
 
             if(((lastTenSumCPU/10) >= parseFloat(value.cpuLimit)) || ((lastTenSumMem/10) >= parseFloat(value.memLimit))){
-                if(emailflag === false || counter >= 60){
+                if( (!emailflag || counter >= 60 ) && !isSending){
+                    /*
+                    let d = new Date();
+                    let h = parseWithZero(d.getHours());
+                    let m = parseWithZero(d.getMinutes());
+                    let ss = parseWithZero(d.getSeconds());
+                    let t = h+':'+m+':'+ss;
+                    console.log("Heure : ", t);
+                    */
+                    //console.log('Counter: ',counter);
+                    //console.log('Is sending: ',isSending);
+                    isSending = true;
                     mailOptions.to = value.email;
                     mailOptions.text = "Charge CPU: "+ (lastTenSumCPU/10).toFixed(2)+"%, Mémoire: "+(lastTenSumMem/10).toFixed(2)+"%";
+                    
                     transporter.sendMail(mailOptions, (err, data) =>{
                         if(err){
                             emailflag = false;
+                            isSending = false;
                             //console.log("Email error: ", err);
                         }else{
                             emailflag = true;
+                            isSending = false;
                             counter = 0;
                             //console.log("Email sent", data);
                         }
                     })
-                }
+                }else{ counter++}
             }else{ counter++}
         }
     },1000);
@@ -253,21 +289,12 @@ const { F_OK } = require("constants");
                     value.cpuLimit = array[1]; 
                     value.memLimit = array[2];
                     //console.log("Content: ",value.email, value.cpuLimit, value.memLimit);
-                }catch(err){ console.log("Erreur est survenue pendant la lecture ",err.stack); }
+                }catch(err){ console.log("Erreur de lectrure du fichier de configuration ",err.stack); }
             }
         });
     }    
 
-    //Udating values
-    function updateProcess(){
-        osutils.cpuUsage((usage) => {updatevalues.cpusage  = (usage*100).toFixed(2)});
-        updatevalues.freePercentagemem =  (osutils.freememPercentage()*100).toFixed(2);
-        updatevalues.freemem = (osutils.freemem()/1024).toFixed(2);
-        updatevalues.usedmem = (osutils.totalmem()/1024 - osutils.freemem()/1024).toFixed(2);
-        updatevalues.osuptime = parseUptime(osutils.sysUptime());
-    }
-
-    //Mise en forme de données de durée de travail
+    //Mise en forme temps de service
     function parseUptime(val){
         let n = parseInt(val);
         let h = Math.floor(n/3600);

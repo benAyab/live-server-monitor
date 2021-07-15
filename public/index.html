@@ -8,10 +8,7 @@
     </head>
     <body onload="getinitialvalues()">
         <div class="maincontainer">
-            <div class="authorname  border-style">
-               <h4>By GUIGABE Victor  & GONGMOGA KIDANDI Henri</h4>
-            </div>
-
+            
             <div class="section-nav border-style">
                 <h4> <a href="/config">Configurer la notification</a> </h4>
             </div>
@@ -19,6 +16,9 @@
                 <span> En service depuis: </span>
                 <h4> <span id="uptime"></span> </h4>
             </div>
+            <div class="authorname  border-style">
+                <h4>By GUIGABE Victor | IA & IoT Developper </h4>
+             </div>
             <div class="blockinfo cpu border-style">
                 <h3> Processeur</h3>
                 <ul>
@@ -47,7 +47,7 @@
                 </div>
             </div>
             <div class="blockinfosys border-style">
-                <h4> Système et hôte</h4>
+                <h3> Information Système</h3>
                 <ul>
                     <li> <span class="name">Plateforme: </span> <span class="value" id='osplatform'></span> </li>
                     <li> <span class="name">Type: </span> <span class="value" id='osptype'></span> </li>
@@ -89,7 +89,7 @@
                 document.getElementById('cpulog').innerText = obj.cpulog;
                 document.getElementById('cpuarch').innerText = obj.cpuarch;
                 document.getElementById('cpusage').innerText = obj.cpusage;
-                document.getElementById('cpuspeed').innerText = obj.cpuspeed + 'GHz';
+                document.getElementById('cpuspeed').innerText = obj.cpuspeed + ' GHz';
 
                 document.getElementById('totalmem').innerText = obj.totalmem+' Go';
                 document.getElementById('usedmem').innerText = obj.usedmem+' Go';
@@ -128,8 +128,6 @@
 	            window.myDoughnut.update();
 	            window.myCanvas.update();
 	            });
-
-            //setInterval(function (){}, 1000);
         </script>
     </body>
 </html>
