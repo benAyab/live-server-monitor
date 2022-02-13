@@ -1,6 +1,10 @@
-## Author Victor GUIGABE  aka Ayab Ben
+### This is a light application for monitoring server directly in your browser 
+### Or Remotly via IP adress of target machine.
+* An android app is also available [contact me at victorguigabe@gmail.com]
 
-#### Install dependencies, build code and run server
+
+
+### Install dependencies, build code and run server
 ```
 $ clone this project 
 $ npm install
@@ -12,7 +16,8 @@ $ node app
 ### Build your native exec
 ```
 # for all OS just enter "pkg ."
-#Specific OS & platform, see examples below
+
+# Specific OS & platform, see examples below
 	Examples:
 
   – Makes executables for Linux, macOS and Windows
