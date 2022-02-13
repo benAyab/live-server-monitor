@@ -13,7 +13,7 @@ $ npm install
 $ node app
 ```
 
-### Build your native exec
+### Build your native exec thanks to [https://github.com/vercel/pkg#readme]
 ```
 # for all OS just enter "pkg ."
 
